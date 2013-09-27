@@ -17,6 +17,7 @@ int main() {
         cin>>n>>r>>q;
         if (!n && !r && !q)
             break;
+        cout<<"Case #"<<caseno<<endl;
         int party[n];
         vii roads[n];
         for (int i=0;i<n;++i)
@@ -63,7 +64,7 @@ int main() {
                     Q.pop();
                     int city = (nodepack.second).first;
                     int city_distance = nodepack.first;
-                    int referring_city = (nodepack.second).first;
+                    int referring_city = (nodepack.second).second;
                     if (visited[city])
                         continue;
                     visited[city] = 1;
@@ -87,36 +88,60 @@ int main() {
                 if (visited[q2]==1) {
                     //calculate distance
                     int maxparty = party[q2];
-                    int costliest_node = q2;
+                    vector<int> costliest_nodes;
+                    costliest_nodes.push_back(q2);
                     int node = q2;
                     while (node!=q1) {
                         node = distances[node].second;
-                        if (party(node)>maxparty) {
-                            maxparty = party(node);
-                            costliest_node = node;
+                        if (party[node]>=maxparty) {
+                            maxparty = party[node];
+                            if (party[node]>maxparty)
+                                costliest_nodes.clear();
+                            costliest_nodes.push_back(node);
                         }
                     }
                     distanceset.push_back(distances[q2].first+maxparty);
+                    int costliest_node = -1;
+                    if (costliest_nodes.size()==1)
+                        costliest_node = *costliest_nodes.begin();
+                    else {
+                        //check if any node other than q1 and q2
+                        tr(costliest_nodes,l) {
+                            if (*l!=q1 && *l!=q2)
+                                costliest_node = *l;
+                        }
+                        if (costliest_node==-1)
+                            costliest_node = *costliest_nodes.begin();
+                    }
                     if (costliest_node == q1 || costliest_node==q2)
                         break;
-
-
-
-                    //record distance in vector
-                    //remove costliest node
-                    //rerun dijkstra
-                    //
+                    tr(roads_copy[costliest_node],l) {
+                        int city = l->second;
+                        tr(roads_copy[city],l1) {
+                            if (l1->second==costliest_node) {
+                                l1 = roads_copy[city].erase(l1);
+                                break;
+                            }
+                        }
+                    }
+                    roads_copy[costliest_node].clear();
                 }
                 else { 
                     break;
                 }
             }
-            //print minimum distance
-            /*if (caseno!=1)
-                cout<<endl;
-            cout<<"Case #"<<caseno<<endl;
-                cout<<query_solutions[i]<<endl;*/
-            //print minimum distance
+
+            if (distanceset.empty()) {
+                cout<<"-1"<<endl;
+            }
+            else {
+                int mindistance = M;
+                tr(distanceset,l) {
+                    if (*l<mindistance)
+                        mindistance = *l;
+                }
+                cout<<mindistance<<endl;
+            }
         }
     }
     return 0;
