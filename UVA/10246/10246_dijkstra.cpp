@@ -17,7 +17,7 @@ int main() {
         cin>>n>>r>>q;
         if (!n && !r && !q)
             break;
-        int party[n],query_solutions[q];
+        int party[n];
         vii roads[n];
         for (int i=0;i<n;++i)
             cin>>party[i];
@@ -29,88 +29,94 @@ int main() {
             roads[c2].push_back(make_pair(d,c1));
         }
 
-        map<int,vector<pair<int,int> > > m;
+        vector<pair<int,int> > m;
         for (int i=0;i<q;++i) {
             int q1,q2;
             cin>>q1>>q2;q1--;q2--;
-            m[q1].push_back(make_pair(q2,i));
+            m.push_back(make_pair(q1,q2));
         }
         
         tr(m,i) {
-            int q1=i->first;
-            priority_queue<pipii,vector<pipii>,greater<pipii> > Q;
-            Q.push(make_pair(party[q1],make_pair(party[q1],q1)));
-            /* The first number is the min distance till that node (including the 
-             * costliest party so far). The second number is the costliest party
-             * so far. The third number is the number of the node.
-             */
-
-            int visited[n];
-            int distances[n];
-            for (int i=0;i<n;++i) {
-                visited[i] = 0;
-                distances[i] = M;
+            int q1=i->first, q2=i->second;
+            vii roads_copy[n];
+            //create a copy of roads
+            for (int k=0; k<n; ++k) {
+                tr(roads[k],l) {
+                    roads_copy[k].push_back(make_pair(l->first,l->second));
+                }
             }
-            while(!Q.empty()) {
-                pipii nodepack = Q.top();
-                Q.pop();
-                int city = (nodepack.second).second;
-                int maxparty = (nodepack.second).first;
-                int city_distance = nodepack.first;
-                if (visited[city])
-                    continue;
-                visited[city] = 1;
-                distances[city] = nodepack.first;
-
-                /* Check if all the nodes we want to reach from this point have
-                 * been visited.
+            vector<int> distanceset;
+            while (true) {
+                priority_queue<pipii,vector<pipii>,greater<pipii> > Q;
+                Q.push(make_pair(0,make_pair(q1,q1)));
+                /* The first number is the minimum distance, the second is the
+                 * node number, the third is the previous city.
                  */
-                bool success = true;
-                tr(m[q1],j) {
-                    if (!visited[j->first]) {
-                        success = false;
+                int visited[n];
+                pair<int,int> distances[n];
+                for (int i=0;i<n;++i) {
+                    visited[i] = 0;
+                    distances[i] = make_pair(M,-1);
+                }
+                while(!Q.empty()) {
+                    pipii nodepack = Q.top();
+                    Q.pop();
+                    int city = (nodepack.second).first;
+                    int city_distance = nodepack.first;
+                    int referring_city = (nodepack.second).first;
+                    if (visited[city])
+                        continue;
+                    visited[city] = 1;
+                    distances[city] = make_pair(city_distance,referring_city);
+
+                    if (city==q2)
                         break;
+
+                    //Explore its neighbors
+                    tr(roads_copy[city],j) {
+                        int new_city = j->second;
+                        int new_city_distance = city_distance + j->first;
+                        if (!visited[new_city]) {
+                            if (distances[new_city].first > new_city_distance) {
+                                distances[new_city] = make_pair(new_city_distance, city);
+                                Q.push(make_pair(new_city_distance,make_pair(new_city,city)));
+                            }
+                        }
                     }
                 }
-                if (success)
+                if (visited[q2]==1) {
+                    //calculate distance
+                    int maxparty = party[q2];
+                    int costliest_node = q2;
+                    int node = q2;
+                    while (node!=q1) {
+                        node = distances[node].second;
+                        if (party(node)>maxparty) {
+                            maxparty = party(node);
+                            costliest_node = node;
+                        }
+                    }
+                    distanceset.push_back(distances[q2].first+maxparty);
+                    if (costliest_node == q1 || costliest_node==q2)
+                        break;
+
+
+
+                    //record distance in vector
+                    //remove costliest node
+                    //rerun dijkstra
+                    //
+                }
+                else { 
                     break;
-
-
-                //Explore its neighbors
-                tr(roads[city],j) {
-                    int new_city = j->second;
-                    int new_city_distance = j->first;
-                    if (!visited[new_city]) {
-                        int next_best_distance,next_max_party;
-                        if (maxparty<party[new_city]) {
-                            next_best_distance = city_distance-maxparty+party[new_city]+new_city_distance;
-                            next_max_party = party[new_city];
-                        }
-                        else {
-                            next_best_distance = city_distance + new_city_distance;
-                            next_max_party = maxparty;
-                        }
-                        if (distances[new_city]>next_best_distance) {
-                            distances[new_city] = next_best_distance;
-                            Q.push(make_pair(next_best_distance,make_pair(next_max_party,new_city)));
-                        }
-                    }
                 }
             }
-            tr(m[q1],j) {
-                int index = j->second;
-                int city = j->first;
-                if (visited[city]==0)
-                    query_solutions[index] = -1;
-                else
-                    query_solutions[index] = distances[city];
-            }
-        }
-        if (caseno!=1)
-            cout<<endl;
-        cout<<"Case #"<<caseno<<endl;
-        for (int i=0;i<q;++i) {
-            cout<<query_solutions[i]<<endl;
+            //print minimum distance
+            /*if (caseno!=1)
+                cout<<endl;
+            cout<<"Case #"<<caseno<<endl;
+                cout<<query_solutions[i]<<endl;*/
+            //print minimum distance
         }
     }
     return 0;
