@@ -5,7 +5,7 @@
 #include<algorithm>
 #include<map>
 using namespace std;
-#define M 10000
+#define M 1000000
 #define tr(c,i) for(typeof(c.begin()) i=c.begin(); i!=c.end(); ++i)
 
 int main() {
@@ -36,7 +36,7 @@ int main() {
     }
     else {
         while (p>0) {
-            int x=0;
+            int x=-1;
             int s;
             for (int i=minpaintdigit;i<9;++i) {
                 s = p-paint[i];
@@ -46,7 +46,7 @@ int main() {
                     x = i;
                 }
             }
-            if (!x)
+            if (x<0)
                 break;
             else {
                 p -= paint[x];
